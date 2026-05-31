@@ -77,16 +77,27 @@ kbd {
 /* ── LAYOUT ──────────────────────────────────────── */
 .app {
   display: flex;
-  height: calc(100vh - 44px);
+  height: calc(100dvh - 44px);
+  position: relative;
 }
 
-/* ── SIDEBAR ─────────────────────────────────────── */
+/* ── SIDEBAR — always a floating overlay ─────────── */
 .sidebar {
-  width: 232px; flex-shrink: 0;
+  position: fixed;
+  top: 44px; left: 0; bottom: 0;
+  width: 252px;
   background: var(--surface);
-  border-right: 1px solid var(--border);
+  border-right: 1px solid var(--border2);
   overflow-y: auto;
   display: flex; flex-direction: column;
+  z-index: 200;
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: none;
+}
+.sidebar.open {
+  transform: translateX(0);
+  box-shadow: 4px 0 32px rgba(0,0,0,0.5);
 }
 .sidebar::-webkit-scrollbar { width: 4px; }
 .sidebar::-webkit-scrollbar-track { background: transparent; }
@@ -237,9 +248,9 @@ input[type=color] {
 
 .hidden { display: none !important; }
 
-/* ── OUTPUT ──────────────────────────────────────── */
+/* ── OUTPUT — always full width ──────────────────── */
 .output {
-  flex: 1; display: flex; flex-direction: column;
+  flex: 1; width: 100%; display: flex; flex-direction: column;
   overflow: hidden;
 }
 
@@ -378,36 +389,39 @@ input[type=color] {
 }
 .overlay.show { opacity: 1; }
 
-/* ── SHEET HANDLE ────────────────────────────────── */
+/* ── SHEET HANDLE (mobile only pill) ─────────────── */
 .sheet-handle {
-  display: none;
+  display: none;  /* shown in mobile MQ */
   justify-content: center; align-items: center;
-  padding: 10px 0 6px;
-  flex-shrink: 0; cursor: grab;
+  padding: 10px 0 4px;
+  flex-shrink: 0; cursor: grab; touch-action: none;
 }
 .sheet-handle-bar {
   width: 36px; height: 4px;
   background: var(--dim); border-radius: 2px;
 }
 
-/* ── SHEET HEADER ────────────────────────────────── */
+/* ── SHEET HEADER (title + close, always visible) ── */
 .sheet-header {
-  display: none;
+  display: flex;
   align-items: center; justify-content: space-between;
-  padding: 0 14px 10px;
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
-.sheet-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.sheet-title { font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: 0.1px; }
 .sheet-close {
   width: 28px; height: 28px;
   display: flex; align-items: center; justify-content: center;
   background: var(--surface2); border: none;
   border-radius: 50%; color: var(--muted);
-  cursor: pointer; font-size: 16px;
+  cursor: pointer; font-size: 15px; line-height: 1;
+  transition: background 0.15s, color 0.15s;
 }
-.sheet-close:active { background: var(--surface3); }
+.sheet-close:hover { background: var(--surface3); color: var(--text); }
+.sheet-close:active { background: var(--dim); }
 
-/* ── MOBILE TOPBAR BUTTONS ───────────────────────── */
+/* ── TOPBAR BUTTONS ──────────────────────────────── */
 .mobile-upload-icon {
   display: none;
   width: 36px; height: 36px;
@@ -416,8 +430,9 @@ input[type=color] {
   border-radius: var(--radius); color: #1a1a1a;
   cursor: pointer; flex-shrink: 0;
 }
+/* Settings button — always visible */
 .btn-settings {
-  display: none;
+  display: flex;
   width: 36px; height: 36px;
   align-items: center; justify-content: center;
   background: var(--surface2);
@@ -441,56 +456,53 @@ input[type=color] {
 }
 
 /* ══════════════════════════════════════════════════
-   MOBILE  (≤ 767px)
+   DESKTOP — sidebar as left drawer
+══════════════════════════════════════════════════ */
+.overlay { display: block; }   /* always rendered, toggled via opacity */
+.sheet-handle { display: none; }
+.sheet-header { display: flex; }  /* show title + close on all sizes */
+
+/* ══════════════════════════════════════════════════
+   MOBILE  (≤ 767px)  — sidebar becomes bottom sheet
 ══════════════════════════════════════════════════ */
 @media (max-width: 767px) {
 
-  /* Topbar: compact */
-  .topbar { padding: 0 10px; gap: 8px; height: 48px; }
+  /* Topbar */
+  .topbar { padding: 0 10px; gap: 8px; height: 50px; }
   .topbar-title,
   .topbar-divider,
   .topbar-author-wrap,
   .kbd-hint,
   .btn-upload { display: none; }
-  .mobile-upload-icon,
-  .btn-settings { display: flex; }
+  .mobile-upload-icon { display: flex; }
 
-  /* Layout: full-height output */
-  .app { height: calc(100dvh - 48px); }
+  .app { height: calc(100dvh - 50px); }
 
-  /* Output: no sidebar, full width */
-  .output { width: 100%; }
-
-  /* Sidebar → bottom sheet */
+  /* Sidebar → bottom sheet instead of left drawer */
   .sidebar {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
+    top: auto;
+    left: 0; right: 0; bottom: 0;
     width: 100%; max-height: 78dvh;
     border-right: none;
     border-top: 1px solid var(--border2);
     border-radius: 16px 16px 0 0;
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.5);
     transform: translateY(calc(100% + 1px));
-    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
-    z-index: 200;
     padding-bottom: env(safe-area-inset-bottom, 12px);
   }
-  .sidebar.open { transform: translateY(0); }
+  .sidebar.open {
+    transform: translateY(0);
+    box-shadow: 0 -8px 32px rgba(0,0,0,0.5);
+  }
 
-  /* Show sheet chrome */
-  .sheet-handle,
-  .sheet-header { display: flex; }
-
-  /* Overlay */
-  .overlay { display: block; }
+  /* Swipe handle visible on mobile */
+  .sheet-handle { display: flex; }
+  /* Compact header on mobile (no title, just close) */
+  .sheet-title { display: none; }
 
   /* Touch-friendly controls */
-  select {
-    padding: 10px 32px 10px 10px;
-    font-size: 15px; min-height: 44px;
-  }
-  input[type=text] {
-    padding: 10px; font-size: 15px; min-height: 44px;
-  }
+  select { padding: 10px 32px 10px 10px; font-size: 15px; min-height: 44px; }
+  input[type=text] { padding: 10px; font-size: 15px; min-height: 44px; }
   input[type=range] { height: 6px; }
   input[type=color] { width: 44px; height: 40px; }
   .color-hex { padding: 8px 10px; font-size: 12px; min-height: 40px; }
@@ -505,7 +517,7 @@ input[type=color] {
   .section { padding: 14px 16px 16px; }
   .field { margin-bottom: 14px; }
 
-  /* Export: grid on mobile (hide from sidebar, show in mobile-export-bar) */
+  /* Export: hide from sidebar, show quick bar below canvas */
   .sidebar .section:last-child { display: none; }
   .mobile-export-bar { display: flex; }
 
@@ -514,29 +526,26 @@ input[type=color] {
   .drop-title { font-size: 16px; }
   .drop-hint { display: none; }
 
-  /* Preview thumbnail: smaller */
+  /* Preview thumbnail */
   .preview-wrap { width: 72px; height: 50px; bottom: 6px; right: 6px; }
 
   /* Video bar */
   .video-bar { padding: 10px 12px; gap: 10px; }
-  .play-btn { width: 38px; height: 38px; font-size: 13px; flex-shrink: 0; }
+  .play-btn { width: 38px; height: 38px; font-size: 13px; }
   .timeline { height: 6px; }
-  .time-txt { font-size: 12px; }
 
   /* Status bar: minimal */
   .statusbar { height: 30px; padding: 0 10px; }
   .s-item { padding: 0 8px; }
   .s-item:nth-child(n+5) { display: none; }
 
-  /* Notification: top center on mobile */
+  /* Notification: center-bottom */
   .notif {
-    top: auto; bottom: 90px; right: 50%;
+    top: auto; bottom: 80px; right: 50%;
     transform: translateX(50%) translateY(8px) scale(0.96);
     white-space: nowrap;
   }
-  .notif.show {
-    transform: translateX(50%) translateY(0) scale(1);
-  }
+  .notif.show { transform: translateX(50%) translateY(0) scale(1); }
 }
 
 @media (max-width: 400px) {
@@ -1390,78 +1399,76 @@ document.addEventListener('keydown', e => {
 });
 
 // ═══════════════════════════════════════════════
-//  MOBILE BOTTOM SHEET
+//  PANEL (left drawer on desktop, bottom sheet on mobile)
 // ═══════════════════════════════════════════════
-const sidebar   = $('sidebar');
-const overlay   = $('overlay');
+const sidebar     = $('sidebar');
+const overlay     = $('overlay');
 const settingsBtn = $('settingsBtn');
+
+const isMobile = () => window.innerWidth <= 767;
 
 function openSheet() {
   sidebar.classList.add('open');
   overlay.classList.add('show');
   settingsBtn.classList.add('active');
-  document.body.style.overflow = 'hidden';
 }
 
 function closeSheet() {
   sidebar.classList.remove('open');
   overlay.classList.remove('show');
   settingsBtn.classList.remove('active');
-  document.body.style.overflow = '';
 }
 
 function toggleSheet() {
   sidebar.classList.contains('open') ? closeSheet() : openSheet();
 }
 
-// Close on Escape
 document.addEventListener('keydown', e => {
   if (e.code === 'Escape') closeSheet();
 });
 
-// ── Swipe-to-close on the bottom sheet ──────────
+// ── Swipe-to-close gesture ───────────────────────
+// Mobile: swipe down on handle  |  Desktop: drag left on handle
 (function initSwipe() {
-  let startY = 0, currentY = 0, dragging = false;
+  let startX = 0, startY = 0, delta = 0, dragging = false;
   const handle = $('sheetHandle');
 
-  function onStart(y) {
-    startY = y; dragging = true;
+  function onStart(x, y) {
+    startX = x; startY = y; delta = 0; dragging = true;
     sidebar.style.transition = 'none';
   }
-  function onMove(y) {
+  function onMove(x, y) {
     if (!dragging) return;
-    currentY = Math.max(0, y - startY);
-    sidebar.style.transform = `translateY(${currentY}px)`;
+    if (isMobile()) {
+      delta = Math.max(0, y - startY);
+      sidebar.style.transform = `translateY(${delta}px)`;
+    } else {
+      delta = Math.min(0, x - startX);
+      sidebar.style.transform = `translateX(${delta}px)`;
+    }
   }
   function onEnd() {
     if (!dragging) return; dragging = false;
     sidebar.style.transition = '';
     sidebar.style.transform = '';
-    if (currentY > 80) closeSheet(); else { if (sidebar.classList.contains('open')) sidebar.style.transform = ''; }
-    currentY = 0;
+    const threshold = isMobile() ? 80 : -60;
+    if (isMobile() ? delta > threshold : delta < threshold) closeSheet();
+    delta = 0;
   }
 
-  handle.addEventListener('touchstart', e => onStart(e.touches[0].clientY), { passive: true });
-  handle.addEventListener('touchmove',  e => onMove(e.touches[0].clientY),  { passive: true });
+  handle.addEventListener('touchstart', e => onStart(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
+  handle.addEventListener('touchmove',  e => onMove(e.touches[0].clientX,  e.touches[0].clientY),  { passive: true });
   handle.addEventListener('touchend',   onEnd);
-  handle.addEventListener('mousedown',  e => onStart(e.clientY));
-  document.addEventListener('mousemove', e => { if (dragging) onMove(e.clientY); });
+  handle.addEventListener('mousedown',  e => onStart(e.clientX, e.clientY));
+  document.addEventListener('mousemove', e => { if (dragging) onMove(e.clientX, e.clientY); });
   document.addEventListener('mouseup',   onEnd);
 })();
 
-// ── Sync mobile rec button visibility ───────────
-const origLoadVideo = loadVideo;
-function syncMobileRec(show) {
+// ── Sync mobile rec button ───────────────────────
+const observer = new MutationObserver(() => {
+  const show = !$('animSection').classList.contains('hidden');
   const btn = $('mobileRecBtn');
   if (btn) btn.classList.toggle('hidden', !show);
-}
-
-// Patch loadImageOrGif and loadVideo to sync mobile rec button
-const _origLoadImageOrGif = loadImageOrGif;
-// (already called inline; simpler: watch animSection visibility)
-const observer = new MutationObserver(() => {
-  const visible = !$('animSection').classList.contains('hidden');
-  syncMobileRec(visible);
 });
 observer.observe($('animSection'), { attributeFilter: ['class'] });
 </script>
