@@ -40,6 +40,7 @@ html, body {
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
   user-select: none;
+  position: relative; z-index: 300;
 }
 .topbar-logo {
   display: flex; align-items: center; gap: 8px;
@@ -374,9 +375,11 @@ input[type=color] {
   display: none;
   position: fixed; inset: 0; z-index: 150;
   background: rgba(0,0,0,0.6);
-  opacity: 0; transition: opacity 0.3s;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
 }
-.overlay.show { opacity: 1; }
+.overlay.show { opacity: 1; pointer-events: auto; }
 
 /* ── SHEET HANDLE (mobile only pill) ─────────────── */
 .sheet-handle {
