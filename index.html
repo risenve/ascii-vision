@@ -582,12 +582,12 @@ input[type=color] {
       </svg>
       Upload File
     </button>
-    <!-- Mobile only -->
-    <button class="mobile-upload-icon" onclick="document.getElementById('fileInput').click()" title="Upload file">
+    <!-- Mobile only — label natively opens file picker -->
+    <label class="mobile-upload-icon" for="fileInput" title="Upload file">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
       </svg>
-    </button>
+    </label>
     <button class="btn-settings" id="settingsBtn" onclick="toggleSheet()" title="Settings">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/>
@@ -771,8 +771,8 @@ input[type=color] {
 
     <div class="canvas-wrap" id="canvasWrap">
 
-      <!-- Drop zone -->
-      <div class="drop-zone" id="dropZone">
+      <!-- Drop zone — label triggers file input natively on all devices -->
+      <label class="drop-zone" id="dropZone" for="fileInput">
         <div class="drop-icon">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -783,9 +783,9 @@ input[type=color] {
         <div class="drop-title">Drop file here</div>
         <div class="drop-sub">Supports image, video, and GIF</div>
         <div class="drop-hint">
-          or click to browse &nbsp;·&nbsp; <kbd>O</kbd> to open
+          or tap to browse &nbsp;·&nbsp; <kbd>O</kbd> to open
         </div>
-      </div>
+      </label>
 
       <!-- ASCII output canvas -->
       <canvas id="asciiCanvas"></canvas>
@@ -986,7 +986,7 @@ $('glowChk').addEventListener('change',  e => { S.glow   = e.target.checked; sch
 //  FILE LOADING
 // ═══════════════════════════════════════════════
 fileInput.addEventListener('change', e => { if (e.target.files[0]) loadFile(e.target.files[0]); });
-dropZone.addEventListener('click', () => fileInput.click());
+// drop-zone is now a <label for="fileInput"> — click handled natively
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
 dropZone.addEventListener('drop', e => {
@@ -1397,26 +1397,25 @@ const sidebar     = $('sidebar');
 const overlay     = $('overlay');
 const settingsBtn = $('settingsBtn');
 
-const isMobile = () => window.innerWidth <= 767;
-
-function openSheet() {
+// Assigned to window so inline onclick="…" in HTML can always find them
+window.openSheet = function() {
   sidebar.classList.add('open');
   overlay.classList.add('show');
   settingsBtn.classList.add('active');
-}
+};
 
-function closeSheet() {
+window.closeSheet = function() {
   sidebar.classList.remove('open');
   overlay.classList.remove('show');
   settingsBtn.classList.remove('active');
-}
+};
 
-function toggleSheet() {
-  sidebar.classList.contains('open') ? closeSheet() : openSheet();
-}
+window.toggleSheet = function() {
+  sidebar.classList.contains('open') ? window.closeSheet() : window.openSheet();
+};
 
 document.addEventListener('keydown', e => {
-  if (e.code === 'Escape') closeSheet();
+  if (e.code === 'Escape') window.closeSheet();
 });
 
 // ── Swipe-to-close gesture ───────────────────────
@@ -1443,8 +1442,8 @@ document.addEventListener('keydown', e => {
     if (!dragging) return; dragging = false;
     sidebar.style.transition = '';
     sidebar.style.transform = '';
-    const threshold = isMobile() ? 80 : -60;
-    if (isMobile() ? delta > threshold : delta < threshold) closeSheet();
+    const threshold = 80;
+    if (delta > threshold) window.closeSheet();
     delta = 0;
   }
 
