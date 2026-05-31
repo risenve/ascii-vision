@@ -78,26 +78,15 @@ kbd {
 .app {
   display: flex;
   height: calc(100dvh - 44px);
-  position: relative;
 }
 
-/* ── SIDEBAR — always a floating overlay ─────────── */
+/* ── SIDEBAR — desktop: always visible in flow ───── */
 .sidebar {
-  position: fixed;
-  top: 44px; left: 0; bottom: 0;
-  width: 252px;
+  width: 232px; flex-shrink: 0;
   background: var(--surface);
-  border-right: 1px solid var(--border2);
+  border-right: 1px solid var(--border);
   overflow-y: auto;
   display: flex; flex-direction: column;
-  z-index: 200;
-  transform: translateX(-100%);
-  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
-  box-shadow: none;
-}
-.sidebar.open {
-  transform: translateX(0);
-  box-shadow: 4px 0 32px rgba(0,0,0,0.5);
 }
 .sidebar::-webkit-scrollbar { width: 4px; }
 .sidebar::-webkit-scrollbar-track { background: transparent; }
@@ -430,9 +419,9 @@ input[type=color] {
   border-radius: var(--radius); color: #1a1a1a;
   cursor: pointer; flex-shrink: 0;
 }
-/* Settings button — always visible */
+/* Settings button — mobile only */
 .btn-settings {
-  display: flex;
+  display: none;
   width: 36px; height: 36px;
   align-items: center; justify-content: center;
   background: var(--surface2);
@@ -455,12 +444,8 @@ input[type=color] {
   flex: 1; padding: 10px 8px; font-size: 12px;
 }
 
-/* ══════════════════════════════════════════════════
-   DESKTOP — sidebar as left drawer
-══════════════════════════════════════════════════ */
-.overlay { display: block; }   /* always rendered, toggled via opacity */
-.sheet-handle { display: none; }
-.sheet-header { display: flex; }  /* show title + close on all sizes */
+/* sheet chrome hidden on desktop */
+.sheet-header { display: none; }
 
 /* ══════════════════════════════════════════════════
    MOBILE  (≤ 767px)  — sidebar becomes bottom sheet
@@ -478,27 +463,31 @@ input[type=color] {
 
   .app { height: calc(100dvh - 50px); }
 
-  /* Sidebar → bottom sheet instead of left drawer */
+  /* Sidebar → bottom sheet */
   .sidebar {
-    top: auto;
-    left: 0; right: 0; bottom: 0;
+    position: fixed;
+    top: auto; left: 0; right: 0; bottom: 0;
     width: 100%; max-height: 78dvh;
     border-right: none;
     border-top: 1px solid var(--border2);
     border-radius: 16px 16px 0 0;
-    box-shadow: 0 -8px 32px rgba(0,0,0,0.5);
     transform: translateY(calc(100% + 1px));
+    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+    z-index: 200;
     padding-bottom: env(safe-area-inset-bottom, 12px);
   }
-  .sidebar.open {
-    transform: translateY(0);
-    box-shadow: 0 -8px 32px rgba(0,0,0,0.5);
-  }
+  .sidebar.open { transform: translateY(0); box-shadow: 0 -8px 32px rgba(0,0,0,0.5); }
 
-  /* Swipe handle visible on mobile */
+  /* Overlay clickable on mobile */
+  .overlay { display: block; }
+
+  /* Sheet chrome */
   .sheet-handle { display: flex; }
-  /* Compact header on mobile (no title, just close) */
+  .sheet-header { display: flex; }
   .sheet-title { display: none; }
+
+  /* Toggle buttons */
+  .btn-settings { display: flex; }
 
   /* Touch-friendly controls */
   select { padding: 10px 32px 10px 10px; font-size: 15px; min-height: 44px; }
